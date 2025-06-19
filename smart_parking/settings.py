@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-u_b23hc8@u3l49iyu0v1+nw+9)a+0lm4otl_4g^=oh1&zh0=y-'
+SECRET_KEY = 'your secret key'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -77,9 +77,9 @@ WSGI_APPLICATION = 'smart_parking.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'smart_parking',
-        'USER': 'root',
-        'PASSWORD': 'mahakal123',
+        'NAME': 'database name',
+        'USER': 'name of user',
+        'PASSWORD': 'your databse password',
         'HOST': 'localhost',
     }
 }
