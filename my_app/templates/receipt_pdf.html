@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .header { text-align: center; margin-bottom: 30px; }
+    .details { margin-top: 20px; }
+    .section { margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>🚗 Smart Parking Receipt</h2>
+    <p><strong>Receipt ID:</strong> #{{ session.id }}</p>
+  </div>
+
+  <div class="details">
+    <div class="section"><strong>Plate Number:</strong> {{ session.plate_number }}</div>
+    <div class="section"><strong>Vehicle Type:</strong> {{ session.vehicle_type }}</div>
+    <div class="section"><strong>Entry Time:</strong> {{ session.entry_time }}</div>
+    <div class="section"><strong>Exit Time:</strong> {{ session.exit_time }}</div>
+    <div class="section"><strong>Total Time:</strong>
+      {{ session.exit_time|timeuntil:session.entry_time }}
+    </div>
+    <div class="section"><strong>Total Charge:</strong> ₹ {{ session.charge }}</div>
+    <div class="section"><strong>Paid:</strong> {{ session.is_paid|yesno:"Yes,No" }}</div>
+  </div>
+
+  <hr />
+  <p>Thank you for using Smart Parking System!</p>
+</body>
+</html>

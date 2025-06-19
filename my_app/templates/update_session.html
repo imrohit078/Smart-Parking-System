@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <h3>🛠️ Update Parking Session for <strong>{{ session.plate_number }}</strong></h3>
+  <form method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+      {{ form.exit_time.label_tag }} {{ form.exit_time }}
+    </div>
+    <div class="mb-3">
+      {{ form.is_paid.label_tag }} {{ form.is_paid }}
+    </div>
+    <div class="mb-3">
+      {{ form.custom_charge.label_tag }} {{ form.custom_charge }}
+      <small class="form-text text-muted">Leave blank to auto-calculate</small>
+    </div>
+    <button type="submit" class="btn btn-primary">💾 Update</button>
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary">↩ Back</a>
+  </form>
+</div>
+{% endblock %}

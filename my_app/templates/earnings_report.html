@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">📊 Earnings Report</h2>
+
+  <!-- Filter Form -->
+  <form method="get" class="row mb-4">
+    <div class="col-md-4">
+      <label for="start_date">Start Date</label>
+      <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+    </div>
+    <div class="col-md-4">
+      <label for="end_date">End Date</label>
+      <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+    </div>
+    <div class="col-md-4 d-flex align-items-end">
+      <button type="submit" class="btn btn-success w-100">Filter</button>
+    </div>
+  </form>
+
+  <!-- Summary Cards -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card text-white bg-success">
+        <div class="card-body">
+          <h5 class="card-title">Total Earnings</h5>
+          <h3>₹ {{ total_earnings }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 text-end">
+      <a href="{% url 'export_earnings_csv' %}" class="btn btn-outline-primary mt-4">⬇️ Download CSV</a>
+    </div>
+  </div>
+
+  <!-- Chart Section -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">📈 Earnings (Last 7 Days)</h5>
+      <canvas id="dailyChart" height="100"></canvas>
+    </div>
+  </div>
+
+  <!-- Vehicle Type Summary -->
+  <h5 class="mt-4">🛺 Earnings by Vehicle Type</h5>
+  <ul class="list-group mb-4">
+    {% for row in type_summary %}
+      <li class="list-group-item d-flex justify-content-between">
+        <strong>{{ row.vehicle_type|title }}</strong>
+        <span>₹ {{ row.total }}</span>
+      </li>
+    {% empty %}
+      <li class="list-group-item">No data available.</li>
+    {% endfor %}
+  </ul>
+
+  <!-- Paid Sessions Table -->
+  <h5>✅ Paid Sessions</h5>
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped mt-3">
+      <thead class="table-dark">
+        <tr>
+          <th>Plate Number</th>
+          <th>Vehicle Type</th>
+          <th>Entry Time</th>
+          <th>Exit Time</th>
+          <th>Charge (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for session in sessions %}
+        <tr>
+          <td>{{ session.plate_number }}</td>
+          <td>{{ session.vehicle_type }}</td>
+          <td>{{ session.entry_time }}</td>
+          <td>{{ session.exit_time }}</td>
+          <td>{{ session.charge }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center">No records found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('dailyChart').getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: {{ chart_labels|safe }},
+      datasets: [{
+        label: 'Earnings (₹)',
+        data: {{ chart_values|safe }},
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1.5
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 50 }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

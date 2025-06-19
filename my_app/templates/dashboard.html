@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% load employee_tags %}
+
+{% block content %}
+<h2 class="mb-4">🚗 Parking Dashboard</h2>
+
+<!-- 🔍 Search & Filter Form -->
+<form method="get" class="row mb-4 g-2">
+  <div class="col-md-5">
+    <input type="text" name="q" placeholder="Search by Plate Number" value="{{ query }}" class="form-control">
+  </div>
+  <div class="col-md-4">
+    <select name="status" class="form-select">
+      <option value="">All Sessions</option>
+      <option value="paid" {% if payment_filter == "paid" %}selected{% endif %}>Paid Only</option>
+      <option value="unpaid" {% if payment_filter == "unpaid" %}selected{% endif %}>Unpaid Only</option>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <button type="submit" class="btn btn-success w-100">Apply Filter</button>
+  </div>
+</form>
+
+<!-- 🅿️ Available Slots -->
+<div class="mb-4">
+  <h5>Available Slots</h5>
+  <div class="d-flex flex-wrap gap-3">
+    <span class="badge bg-primary fs-6">🚗 Car: {{ available_slots.Car }}</span>
+    <span class="badge bg-success fs-6">🏍️ Bike: {{ available_slots.Bike }}</span>
+    <span class="badge bg-warning text-dark fs-6">🚌 Bus: {{ available_slots.Bus }}</span>
+  </div>
+</div>
+
+<!-- 🚦 Top Actions -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  {% if available_slots.Car > 0 %}
+    <a href="{% url 'detect_plate' %}?type=car" class="btn btn-primary">🚗 Detect Car Entry/Exit</a>
+  {% else %}
+    <button class="btn btn-secondary" disabled>🚫 Car Parking Full</button>
+  {% endif %}
+
+  {% if available_slots.Bike > 0 %}
+    <a href="{% url 'detect_plate' %}?type=bike" class="btn btn-success">🏍️ Detect Bike Entry/Exit</a>
+  {% else %}
+    <button class="btn btn-secondary" disabled>🚫 Bike Parking Full</button>
+  {% endif %}
+
+  {% if available_slots.Bus > 0 %}
+    <a href="{% url 'detect_plate' %}?type=bus" class="btn btn-warning">🚌 Detect Bus Entry/Exit</a>
+  {% else %}
+    <button class="btn btn-secondary" disabled>🚫 Bus Parking Full</button>
+  {% endif %}
+
+  <a href="{% url 'earnings_report' %}" class="btn btn-outline-success">💰 View Earnings Report</a>
+</div>
+
+<!-- 📋 Parking Table -->
+<h4>Current Parking Records</h4>
+<div class="table-responsive">
+  <table class="table table-bordered table-hover align-middle">
+    <thead class="table-secondary">
+      <tr>
+        <th>Plate Number</th>
+        <th>Vehicle Type</th>
+        <th>Entry Time</th>
+        <th>Exit Time</th>
+        <th>Charge</th>
+        <th>Paid</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for session in sessions %}
+        <tr>
+          <td style="text-transform: uppercase;">{{ session.plate_number }}</td>
+          <td>{{ session.vehicle_type }}</td>
+          <td>{{ session.entry_time }}</td>
+          <td>{{ session.exit_time|default:"--" }}</td>
+          <td>{{ session.charge|default:"--" }}</td>
+          <td>
+            {% if session.is_paid %}
+              <span class="badge bg-success">Paid</span>
+            {% else %}
+              <span class="badge bg-danger">Unpaid</span>
+            {% endif %}
+          </td>
+          <td>
+  <div class="d-flex gap-2">
+    {% if session.exit_time %}
+      <a href="{% url 'receipt' session.id %}" class="btn btn-sm btn-info">View</a>
+      <a href="{% url 'pdf_receipt' session.id %}" class="btn btn-sm btn-outline-secondary">PDF</a>
+    {% endif %}
+    
+    {% if user.is_authenticated and user.employeeprofile.is_employee %}
+      <a href="{% url 'update_session' session.id %}" class="btn btn-sm btn-warning">Edit</a>
+    {% endif %}
+  </div>
+</td>
+
+          {% comment %} <td>
+            {% if session.exit_time %}
+              <div class="d-flex gap-2">
+                <a href="{% url 'receipt' session.id %}" class="btn btn-sm btn-info">View</a>
+                <a href="{% url 'pdf_receipt' session.id %}" class="btn btn-sm btn-outline-secondary">PDF</a>
+                {% if user.is_authenticated and session.is_paid and user.employeeprofile.is_employee %}
+                  <a href="{% url 'update_session' session.id %}" class="btn btn-sm btn-warning">Edit</a>
+                {% endif %}
+              </div>
+            {% else %}
+              ---
+            {% endif %}
+          </td> {% endcomment %}
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7" class="text-center">No records found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- 🔁 Scanning Spinner Modal -->
+<div class="modal fade" id="scanningModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center border-info">
+      <div class="modal-body py-4">
+        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <h5 class="text-primary">Scanning Number Plate...</h5>
+        <p class="text-muted mb-0">Please hold vehicle steady in front of the camera.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+{% comment %} {% extends "base.html" %}
+{% load employee_tags %}
+
+{% block content %}
+<h2 class="mb-4">🚗 Parking Dashboard</h2>
+
+<!-- 🔍 Search & Filter Form -->
+<form method="get" class="row mb-4 g-2">
+  <div class="col-md-5">
+    <input type="text" name="q" placeholder="Search by Plate Number" value="{{ query }}" class="form-control">
+  </div>
+  <div class="col-md-4">
+    <select name="status" class="form-select">
+      <option value="">All Sessions</option>
+      <option value="paid" {% if payment_filter=='paid' %}selected{% endif %}>Paid Only</option>
+      <option value="unpaid" {% if payment_filter=='unpaid' %}selected{% endif %}>Unpaid Only</option>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <button type="submit" class="btn btn-success w-100">Apply Filter</button>
+  </div>
+</form>
+
+<!-- 🅿️ Available Slots -->
+<div class="mb-4">
+  <h5>Available Slots</h5>
+  <div class="d-flex flex-wrap gap-3">
+    <span class="badge bg-primary fs-6">🚗 Car: {{ available_slots.Car }}</span>
+    <span class="badge bg-success fs-6">🏍️ Bike: {{ available_slots.Bike }}</span>
+    <span class="badge bg-warning text-dark fs-6">🚌 Bus: {{ available_slots.Bus }}</span>
+  </div>
+</div>
+
+<!-- 🚦 Top Actions -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  {% if available_slots.Car > 0 %}
+  <a href="{% url 'detect_plate' %}?type=car" class="btn btn-primary">🚗 Detect Car Entry/Exit</a>
+  {% else %}
+  <button class="btn btn-secondary" disabled>🚫 Car Parking Full</button>
+  {% endif %}
+
+  {% if available_slots.Bike > 0 %}
+  <a href="{% url 'detect_plate' %}?type=bike" class="btn btn-success">🏍️ Detect Bike Entry/Exit</a>
+  {% else %}
+  <button class="btn btn-secondary" disabled>🚫 Bike Parking Full</button>
+  {% endif %}
+
+  {% if available_slots.Bus > 0 %}
+  <a href="{% url 'detect_plate' %}?type=bus" class="btn btn-warning">🚌 Detect Bus Entry/Exit</a>
+  {% else %}
+  <button class="btn btn-secondary" disabled>🚫 Bus Parking Full</button>
+  {% endif %}
+
+  <a href="{% url 'earnings_report' %}" class="btn btn-outline-success">💰 View Earnings Report</a>
+</div>
+
+<!-- 📋 Parking Table -->
+<h4>Current Parking Records</h4>
+<div class="table-responsive">
+  <table class="table table-bordered table-hover align-middle">
+    <thead class="table-secondary">
+      <tr>
+        <th>Plate Number</th>
+        <th>Vehicle Type</th>
+        <th>Entry Time</th>
+        <th>Exit Time</th>
+        <th>Charge</th>
+        <th>Paid</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for session in sessions %}
+      <tr>
+        <td>{{ session.plate_number }}</td>
+        <td>{{ session.vehicle_type }}</td>
+        <td>{{ session.entry_time }}</td>
+        <td>{{ session.exit_time|default:"--" }}</td>
+        <td>{{ session.charge|default:"--" }}</td>
+        <td>
+          {% if session.is_paid %}
+          <span class="badge bg-success">Paid</span>
+          {% else %}
+          <span class="badge bg-danger">Unpaid</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="d-flex gap-2">
+            {% if session.exit_time %}
+            <a href="{% url 'receipt' session.id %}" class="btn btn-sm btn-info">View</a>
+            <a href="{% url 'pdf_receipt' session.id %}" class="btn btn-sm btn-outline-secondary">PDF</a>
+            {% endif %}
+
+            {% if user.employeeprofile.is_employee %}
+            <a href="{% url 'update_session' session.id %}" class="btn btn-sm btn-warning">Edit</a>
+            {% endif %}
+          </div>
+        </td>
+
+        
+          {% else %}
+          ---
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" class="text-center">No records found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- 🔁 Scanning Spinner Modal -->
+<div class="modal fade" id="scanningModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center border-info">
+      <div class="modal-body py-4">
+        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <h5 class="text-primary">Scanning Number Plate...</h5>
+        <p class="text-muted mb-0">Please hold vehicle steady in front of the camera.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+<!-- ✅ Scripts -->
+<script>
+  function detectPlate() {
+    const scanModal = new bootstrap.Modal(document.getElementById('scanningModal'));
+    scanModal.show();
+
+    fetch('/detect_plate_ajax/')
+      .then(response => response.json())
+      .then(data => {
+        scanModal.hide();
+        if (data.status === 'FULL') {
+          playBeep(false);
+          alert("🚫 No slots available for this vehicle type.");
+        } else {
+          playBeep();
+          alert("✅ Detected: " + data.plate_number);
+          location.reload();
+        }
+      })
+      .catch(err => {
+        scanModal.hide();
+        alert("❌ Detection failed. Please try again.");
+      });
+  }
+
+  function playBeep(success = true) {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = success ? 880 : 220;
+    gain.gain.value = 0.2;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.2);
+  }
+</script> {% endcomment %}

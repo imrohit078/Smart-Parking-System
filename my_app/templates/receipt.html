@@ -1,0 +1,25 @@
+<!-- plate_app/templates/receipt.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="card mx-auto" style="max-width: 600px;">
+  <div class="card-header bg-success text-white">
+    <h4 class="mb-0">🧾 Parking Receipt</h4>
+  </div>
+  <div class="card-body">
+    <p><strong>Plate Number:</strong> {{ session.plate_number }}</p>
+    <p><strong>Vehicle Type:</strong> {{ session.vehicle_type }}</p>
+    <p><strong>Entry Time:</strong> {{ session.entry_time }}</p>
+    <p><strong>Exit Time:</strong> {{ session.exit_time }}</p>
+    <p><strong>Duration:</strong> {{ session.duration }}</p>
+    <p><strong>Total Charge:</strong> ₹{{ session.charge }}</p>
+    <p><strong>Payment Status:</strong> 
+      {% if session.is_paid %}
+        <span class="text-success fw-bold">PAID</span>
+      {% else %}
+        <span class="text-danger fw-bold">NOT PAID</span>
+      {% endif %}
+    </p>
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">⬅️ Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %}
