@@ -37,9 +37,4 @@ class EmployeeProfile(models.Model):
     def __str__(self):
         return self.user.username
     
-# class EmployeeProfile(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     is_employee = models.BooleanField(default=False)
 
-#     def __str__(self):
-#         return self.user.username
